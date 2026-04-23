@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تهنئة تخرج فاطمة - فريق سلابيح حرة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@200;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* === Colour Palette ===
+           Background: #120a2e  (deep violet-black)
+           Surface:    #1e1040  (mid-violet glass)
+           Accent 1:   #e8b86d  (warm antique gold)
+           Accent 2:   #c97bb5  (dusty rose-violet)
+           Accent 3:   #a78bda  (soft lavender)
+           Text:       #f0e6ff  (near-white with violet tint)
+        */
+        :root {
+            --bg:      #120a2e;
+            --surface: #1e1040;
+            --gold:    #e8b86d;
+            --rose:    #c97bb5;
+            --lavender:#a78bda;
+            --text:    #f0e6ff;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg);
+            overflow-x: hidden;
+            margin: 0;
+            color: var(--text);
+        }
+        .font-serif { font-family: 'Amiri', serif; }
+        .gold-text { color: var(--gold); }
+        .gold-border { border-color: rgba(232, 184, 109, 0.3); }
+        .bg-gold-glass { background: rgba(232, 184, 109, 0.06); }
+        .bg-forest-glass { background: rgba(30, 16, 64, 0.65); backdrop-filter: blur(20px); }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+        .animate-heartbeat { animation: heartbeat 1.5s infinite; }
+        
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .fade-in { animation: fadeIn 1s forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hidden-node { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Star Background -->
+    <div id="star-container" class="fixed inset-0 pointer-events-none"></div>
+
+    <!-- Phase 1: Intro Statement -->
+    <div id="intro-screen" class="fixed inset-0 z-50 flex items-center justify-center p-6" style="background-color: var(--bg)">
+        <div class="max-w-3xl text-center">
+            <div class="flex justify-center mb-8 fade-in" style="animation-delay: 0.2s">
+                <i data-lucide="quote" class="w-16 h-16 gold-text opacity-30"></i>
+            </div>
+            
+            <h2 class="gold-text font-serif text-3xl lg:text-5xl mb-8 leading-relaxed fade-in" style="animation-delay: 0.4s">
+                بيان رسمي من "فريق سلابيح حرة"
+            </h2>
+            
+            <p class="text-white text-xl lg:text-2xl font-light leading-loose mb-12 font-serif italic fade-in" style="animation-delay: 0.6s">
+                "يا فاطمة، إنّ لحظة التخرج ليست مجرد نهاية لمشوار دراسي، بل هي انطلاقة لروح مبدعة عرفناها في فريق 'سلابيح حرة'. لقد كنتِ دائماً رمزاً للجد والمرح معاً، واليوم نحتفل بكِ وبطموحكِ الذي لا يعرف المستحيل. مبارك لكِ ولنا هذا النجاح العظيم يا أغلى عضوة في تيمنا."
+            </p>
+
+            <div class="flex flex-col items-center gap-4 fade-in" style="animation-delay: 0.8s">
+                <div class="flex items-center gap-3 px-6 py-3 rounded-full border" style="background: rgba(232,184,109,0.08); border-color: rgba(232,184,109,0.25); color: var(--gold)">
+                    <i data-lucide="clock" class="w-5 h-5 animate-spin-slow" style="color: var(--gold)"></i>
+                    <span id="intro-timer" class="text-xl font-bold">بدء الاحتفال خلال 25 ثانية...</span>
+                </div>
+                <div class="w-64 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="intro-progress" class="h-full w-0 transition-all duration-1000 linear rounded-full" style="background: linear-gradient(90deg, var(--gold), var(--rose))"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 2: Main Content -->
+    <div id="main-content" class="hidden-node min-h-screen flex flex-col items-center justify-center p-4 lg:p-10 relative">
+        <div class="relative z-10 bg-forest-glass p-8 lg:p-12 rounded-[30px] border gold-border max-w-4xl w-full shadow-2xl text-center fade-in">
+            <span class="font-serif gold-text text-lg lg:text-xl tracking-widest block mb-4 opacity-90">
+                ✨ إهداء خاص من فريق سلابيح حرة ✨
+            </span>
+
+            <div class="flex items-center justify-center gap-3 lg:gap-5 mb-6">
+                <div class="h-px w-10 lg:w-20 bg-gradient-to-r from-transparent via-[#e8b86d] to-transparent"></div>
+                <span class="text-lg lg:text-xl" style="color: var(--gold)">❧</span>
+                <div class="h-px w-10 lg:w-20 bg-gradient-to-r from-transparent via-[#e8b86d] to-transparent"></div>
+            </div>
+
+            <div class="flex justify-center mb-6">
+                <div class="drop-shadow-[0_0_18px_rgba(232,184,109,0.5)] transform hover:scale-110 transition-transform">
+                    <i data-lucide="graduation-cap" class="w-20 h-20 lg:w-24 lg:h-24 gold-text"></i>
+                </div>
+            </div>
+
+            <h1 class="text-4xl lg:text-6xl font-black leading-tight mb-4 text-white drop-shadow-md">
+                ألف مبروك التخرج<br />
+                يا <span class="gold-text font-serif italic drop-shadow-[0_0_30px_rgba(232,184,109,0.5)]">فاطمة</span>!
+            </h1>
+
+            <p class="text-base lg:text-xl text-white/75 font-light mb-8">
+                كلنا فخورين فيكِ، هذا اليوم هو بداية إبداعك الحقيقي 🌷
+            </p>
+
+            <!-- Reveal Button -->
+            <div id="reveal-section">
+                <button id="reveal-btn" class="relative group text-white px-10 py-4 text-xl font-bold rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all" style="background: linear-gradient(135deg, #4a2080, #2a0d5e); border: 1px solid rgba(232,184,109,0.5)">
+                    اضغطي هنا لفتح الهدية 🎁
+                </button>
+            </div>
+
+            <!-- Team Messages (Hidden initially) -->
+            <div id="gift-section" class="hidden-node space-y-8 fade-in">
+                <div class="text-2xl lg:text-3xl font-serif italic gold-text">
+                    🌟 أحلى عضو بالتيم — "فطوم" 🌟
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Team members added by JS -->
+                    <div class="bg-white/5 border border-gold/10 rounded-2xl p-6 text-right relative overflow-hidden group">
+                        <span class="absolute top-3 left-3 text-2xl">🌸</span>
+                        <h3 class="gold-text text-xl font-bold mb-3 pb-2 border-b border-gold/20">Srow</h3>
+                        <p class="text-sm lg:text-base text-gray-200 font-light leading-relaxed">مبارك يا غالية! 🌹 تعبتي ونلتي، وفرحتنا فيكِ اليوم ما بتوصف.</p>
+                    </div>
+                    <div class="bg-white/5 border border-gold/10 rounded-2xl p-6 text-right relative overflow-hidden group">
+                        <span class="absolute top-3 left-3 text-2xl">🌿</span>
+                        <h3 class="gold-text text-xl font-bold mb-3 pb-2 border-b border-gold/20">Shadow</h3>
+                        <p class="text-sm lg:text-base text-gray-200 font-light leading-relaxed">ألف مبروك التخرج! 🍃 إضافة قوية للتيم، وأكيد القادم أعظم وأجمل.</p>
+                    </div>
+                    <div class="bg-white/5 border border-gold/10 rounded-2xl p-6 text-right relative overflow-hidden group">
+                        <span class="absolute top-3 left-3 text-2xl">✨</span>
+                        <h3 class="gold-text text-xl font-bold mb-3 pb-2 border-b border-gold/20">Mo</h3>
+                        <p class="text-sm lg:text-base text-gray-200 font-light leading-relaxed">مبارك الإنجاز العظيم! 🎓 خطوة كبيرة انتهت بنجاح، ومتحمسين نشوف إبداعاتك.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-4 mt-8">
+                    <button onclick="toggleHeartModal(true)" class="flex items-center justify-center gap-2 px-8 py-3 rounded-full font-semibold transition-all" style="background: rgba(255,105,180,0.12); color: #ff69b4; border: 1px solid rgba(255,105,180,0.5)">
+                        <i data-lucide="heart" class="w-5 h-5 animate-heartbeat" style="fill: rgba(255,105,180,0.25)"></i>
+                        <span>إهداء خاص لفطوم</span>
+                    </button>
+                    <button onclick="openVideo('https://youtube.com/shorts/1v9AHdwthmY?si=AgoAUIz3gE728a08')" class="flex items-center justify-center gap-2 px-8 py-3 rounded-full font-semibold transition-all" style="background: rgba(167,139,218,0.12); color: var(--lavender); border: 1px solid rgba(167,139,218,0.5)">
+                        <i data-lucide="youtube" class="w-5 h-5"></i>
+                        <span>فيديو قصير 🎬</span>
+                    </button>
+                    <button onclick="openVideo('https://youtu.be/b_-QBfsBshs?list=RDb_-QBfsBshs&t=10')" class="flex items-center justify-center gap-2 px-8 py-3 rounded-full font-semibold transition-all" style="background: rgba(232,184,109,0.12); color: var(--gold); border: 1px solid rgba(232,184,109,0.4)">
+                        <i data-lucide="video" class="w-5 h-5"></i>
+                        <span>فيديو الذكريات 🍿</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Heart Modal -->
+    <div id="heart-modal" class="modal-overlay">
+        <div class="bg-forest-glass rounded-[40px] border gold-border p-8 max-w-xl w-full text-center relative">
+            <button onclick="toggleHeartModal(false)" class="absolute top-6 left-6 text-white/50 hover:text-white">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <div id="heart-countdown-container">
+                <h3 class="text-gold font-serif text-2xl mb-4">هدية من القلب مُحضرة لكِ...</h3>
+                <div id="heart-countdown-timer" class="text-6xl font-bold text-white mb-6">5</div>
+                <div class="h-1 bg-white/5 rounded-full mx-auto w-2/3 mb-6 overflow-hidden">
+                    <div id="heart-progress" class="h-full w-full transition-all duration-1000 linear rounded-full" style="background: linear-gradient(90deg, #ff69b4, #ffb3d9)"></div>
+                </div>
+            </div>
+            <div id="heart-drawing-container" class="hidden-node">
+                <canvas id="heartCanvas" class="mx-auto drop-shadow-[0_0_20px_rgba(255,20,147,0.4)]"></canvas>
+                <div class="mt-6 font-serif text-2xl italic tracking-wide" style="color: #ff69b4">
+                    "لأنكِ قطعة من قلوبنا، مبارك تخرجكِ يا فاطمة"
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Modal -->
+    <div id="video-modal" class="modal-overlay">
+        <div class="w-full h-full max-w-6xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative">
+            <button onclick="toggleVideoModal(false)" class="absolute top-6 left-6 text-white/50 hover:text-white z-50 bg-black/50 p-2 rounded-full">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <iframe id="video-iframe" src="" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // 1. Star Background
+        const starContainer = document.getElementById('star-container');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.setProperty('--duration', `${Math.random() * 3 + 2}s`);
+            starContainer.appendChild(star);
+        }
+
+        // 2. Intro Countdown Logic
+        let introCount = 25;
+        const introTimer = document.getElementById('intro-timer');
+        const introProgress = document.getElementById('intro-progress');
+        const introScreen = document.getElementById('intro-screen');
+        const mainContent = document.getElementById('main-content');
+
+        const introInterval = setInterval(() => {
+            introCount--;
+            introTimer.textContent = `بدء الاحتفال خلال ${introCount} ثانية...`;
+            introProgress.style.width = `${((25 - introCount) / 25) * 100}%`;
+
+            if (introCount <= 0) {
+                clearInterval(introInterval);
+                introScreen.classList.add('hidden-node');
+                mainContent.classList.remove('hidden-node');
+            }
+        }, 1000);
+
+        // 3. Reveal Button Logic
+        const revealBtn = document.getElementById('reveal-btn');
+        const revealSection = document.getElementById('reveal-section');
+        const giftSection = document.getElementById('gift-section');
+
+        revealBtn.addEventListener('click', () => {
+            revealSection.classList.add('hidden-node');
+            giftSection.classList.remove('hidden-node');
+            
+            // Confetti
+            const duration = 3000;
+            const end = Date.now() + duration;
+            const colors = ['#e8b86d', '#c97bb5', '#a78bda', '#f0e6ff', '#ffffff'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: colors
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        });
+
+        // 4. Video Modal Logic
+        const videoModal = document.getElementById('video-modal');
+        const videoIframe = document.getElementById('video-iframe');
+
+        function openVideo(url) {
+            let videoId = "";
+            if (url.includes('shorts/')) {
+                videoId = url.split('shorts/')[1].split('?')[0];
+            } else if (url.includes('v=')) {
+                videoId = url.split('v=')[1].split('&')[0];
+            } else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            }
+            videoIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            videoModal.classList.add('active');
+        }
+
+        function toggleVideoModal(show) {
+            if (!show) {
+                videoModal.classList.remove('active');
+                videoIframe.src = "";
+            }
+        }
+
+        // 5. Heart Modal & Drawing Logic
+        const heartModal = document.getElementById('heart-modal');
+        const heartCountdownContainer = document.getElementById('heart-countdown-container');
+        const heartDrawingContainer = document.getElementById('heart-drawing-container');
+        const heartTimer = document.getElementById('heart-countdown-timer');
+        const heartProgress = document.getElementById('heart-progress');
+        const canvas = document.getElementById('heartCanvas');
+
+        let heartTimerInterval;
+
+        function toggleHeartModal(show) {
+            if (show) {
+                heartModal.classList.add('active');
+                startHeartCountdown();
+            } else {
+                heartModal.classList.remove('active');
+                clearInterval(heartTimerInterval);
+                heartCountdownContainer.classList.remove('hidden-node');
+                heartDrawingContainer.classList.add('hidden-node');
+            }
+        }
+
+        function startHeartCountdown() {
+            let count = 5;
+            heartTimer.textContent = count;
+            heartProgress.style.width = "100%";
+            
+            heartTimerInterval = setInterval(() => {
+                count--;
+                heartTimer.textContent = count;
+                heartProgress.style.width = `${(count / 5) * 100}%`;
+                
+                if (count <= 0) {
+                    clearInterval(heartTimerInterval);
+                    heartCountdownContainer.classList.add('hidden-node');
+                    heartDrawingContainer.classList.remove('hidden-node');
+                    drawHeart();
+                }
+            }, 1000);
+        }
+
+        function drawHeart() {
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width = Math.min(450, window.innerWidth - 60);
+            const H = canvas.height = Math.round(W * 1.1);
+            const cx = W / 2;
+            const cy = H / 2 - 20;
+            const scale = W / 38;
+
+            const colors = ["#ff66b2", "#ff99cc", "#ff4da6", "#ff80bf", "#ff1a8c", "#ffb3d9"];
+
+            function heartX(t) { return 16 * Math.pow(Math.sin(t), 3); }
+            function heartY(t) {
+                return 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            }
+
+            const pts = [];
+            for (let i = 0; i < 1080; i++) {
+                const ang = (i / 2) * Math.PI / 180;
+                pts.push({ x: heartX(ang) * scale, y: heartY(ang) * scale });
+            }
+
+            let drawn = 0;
+            const total = 2200;
+
+            function frame() {
+                if (drawn >= total) {
+                    drawOutline();
+                    return;
+                }
+
+                const p = pts[Math.floor(Math.random() * pts.length)];
+                const startY = Math.random() * 40 - 20;
+
+                ctx.beginPath();
+                ctx.moveTo(cx, cy + startY);
+                ctx.lineTo(cx + p.x, cy - p.y);
+                ctx.strokeStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.globalAlpha = 0.8;
+                ctx.lineWidth = 2.2;
+                ctx.stroke();
+                drawn++;
+                requestAnimationFrame(frame);
+            }
+
+            function drawOutline() {
+                ctx.beginPath();
+                ctx.globalAlpha = 0.9;
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = '#ff1a8c';
+                pts.forEach((p, idx) => {
+                    const x = cx + p.x, y = cy - p.y;
+                    idx === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                });
+                ctx.closePath();
+                ctx.stroke();
+            }
+
+            ctx.clearRect(0, 0, W, H);
+            frame();
+        }
+    </script>
+</body>
+</html>
